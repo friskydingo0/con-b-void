@@ -34,8 +34,8 @@ public class PlayerController : MonoBehaviour
 		float yMove = Input.GetAxisRaw("Vertical");
 
 		Vector3 targetPosition = transform.position;
-		targetPosition.x = Mathf.Clamp(transform.position.x + xMove * _MoveSpeed * Time.deltaTime, GameManager.Instance.bounds.Left, GameManager.Instance.bounds.Right);
-		targetPosition.y = Mathf.Clamp(transform.position.y + yMove * _MoveSpeed * Time.deltaTime, GameManager.Instance.bounds.Bottom, GameManager.Instance.bounds.Top);
+		targetPosition.x = Mathf.Clamp(transform.position.x + xMove * _MoveSpeed * Time.deltaTime, GameManager.Instance.Bounds.Left, GameManager.Instance.Bounds.Right);
+		targetPosition.y = Mathf.Clamp(transform.position.y + yMove * _MoveSpeed * Time.deltaTime, GameManager.Instance.Bounds.Bottom, GameManager.Instance.Bounds.Top);
 		
 		transform.position = targetPosition;
 

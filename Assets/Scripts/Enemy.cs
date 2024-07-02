@@ -3,22 +3,40 @@ using UnityEngine;
 
 public enum EnemyType
 {
-	Easy,
+	Easy = 0,
 	Medium,
 	Hard
 }
 
 public class Enemy : MonoBehaviour
 {
+	public EnemyType enemyType;
 	public int points = 0;
-	private const float _MoveDuration = 0.1f;	// Shouldn't be higher than the fastest move interval (from the EnemyManager)
+	public float shotInterval = 1.5f;
+
+	private const float _MoveDuration = 0.1f;	// For smoothing. Shouldn't be higher than the fastest move interval (from the EnemyManager)
 
 	[SerializeField, Range(0.1f, 3f)]
 	private float MoveOffset = 0.25f;
 
+	[SerializeField]
+	private Transform shotSpawn = null;
+	private Transform _modelRoot = null;
+
+	private float _shotTimer = 0f;
+
+	private bool _isInitComplete = false;
+
+	private void Awake()
+	{
+		_modelRoot = transform.Find("ModelRoot");
+	}
+
 	public void Init()
 	{
 		EnemyManager.Instance.MoveEvent += Move;
+		_shotTimer = 0f;
+		_isInitComplete = true;
 	}
 
 	private void Move(int dir)
@@ -35,6 +53,7 @@ public class Enemy : MonoBehaviour
 		newPos.z = dir != 0 ? newPos.z : newPos.z - MoveOffset;
 		float t = 0;
 		Vector3 startPos = transform.position;
+		
 		while (transform.position != newPos)
 		{
 			transform.position = Vector3.Lerp(startPos, newPos, t / _MoveDuration);
@@ -43,9 +62,33 @@ public class Enemy : MonoBehaviour
 		}
 	}
 
+	private void CheckAndShoot()
+	{
+		if (_shotTimer > shotInterval)
+		{
+			RaycastHit hitInfo;
+			if (!Physics.Raycast(transform.position, transform.forward, out hitInfo, 1.5f, 1 << gameObject.layer))
+			{
+				if (Random.Range(0f, 1f) > 0.95f)
+				{
+					ProjectileManager.Instance.ShootProjectile(shotSpawn);
+				}
+			}
+			_shotTimer = 0f;
+		}
+		else
+		{
+			_shotTimer += Time.deltaTime;
+		}
+    }
+
 	private void Update()
 	{
-		if (Mathf.Approximately(transform.position.z, GameManager.Instance.bounds.Near))
+		if (!_isInitComplete) return;
+
+		CheckAndShoot();
+
+		if (Mathf.Approximately(transform.position.z, GameManager.Instance.Bounds.Near))
 		{
 			// Game over
 		}
@@ -69,7 +112,8 @@ public class Enemy : MonoBehaviour
 		StopAllCoroutines();
 		EnemyManager.Instance.MoveEvent -= Move;
 		EnemyManager.Instance.EnemyKilled(this);
-		Destroy(gameObject);
+		
+		_isInitComplete = false;
 	}
 
 	private void OnMouseDown()

@@ -19,7 +19,7 @@ public class Projectile : MonoBehaviour
 	private void Update()
 	{
 		transform.position += transform.forward * Time.deltaTime * _Speed;
-		if (transform.position.z > GameManager.Instance.bounds.Far)
+		if (transform.position.z > GameManager.Instance.Bounds.Far || transform.position.z < GameManager.Instance.Bounds.Near)
 		{
 			Recycle();
 		}
@@ -28,11 +28,12 @@ public class Projectile : MonoBehaviour
 	private void OnTriggerEnter(Collider other)
 	{
 		Recycle();
+		Debug.Log("Hit " + other.gameObject);
 	}
 
 	private void Recycle()
 	{
-		Assert.IsNotNull(_hitCallback);
+		//Assert.IsNotNull(_hitCallback);
 		_hitCallback?.Invoke();
 		ProjectileManager.Instance.ReturnProjectile(this);
 	}

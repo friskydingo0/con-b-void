@@ -8,6 +8,11 @@ public struct LevelBounds
 	public float Left, Top, Right, Bottom, Near, Far;
 }
 
+public enum GameState
+{
+	MainMenu, Playing, Paused, Victory, GameOver
+}
+
 public class GameManager : MonoBehaviour
 {
 	#region Singleton
@@ -28,7 +33,7 @@ public class GameManager : MonoBehaviour
 	}
 	#endregion
 
-	public LevelBounds bounds = new LevelBounds();
+	public LevelBounds Bounds = new LevelBounds();
 
 	[SerializeField] private Transform _leftWall = null;
 	[SerializeField] private Transform _rightWall = null;
@@ -36,9 +41,12 @@ public class GameManager : MonoBehaviour
 	[SerializeField] private Transform _bottomWall = null;
 	[SerializeField] private Transform _farWall = null;
 
+	// Game State
+	public GameState State { get; private set; }
+	
 	[Header("Player")]
 	[SerializeField]
-	private PlayerController _playerPrefab = null;
+	private PlayerController playerPrefab = null;
 	[SerializeField]
 	private PlayerController playerController = null;
 	
@@ -60,16 +68,16 @@ public class GameManager : MonoBehaviour
 	private void Init()
 	{
 		// Get the bounds and keep them ready
-		bounds.Left = _leftWall.position.x;
-		bounds.Right = _rightWall.position.x;
-		bounds.Top = _topWall.position.y;
-		bounds.Bottom = _bottomWall.position.y;
-		bounds.Near = playerSpawn.position.z;
-		bounds.Far = _farWall.position.z;
+		Bounds.Left = _leftWall.position.x;
+		Bounds.Right = _rightWall.position.x;
+		Bounds.Top = _topWall.position.y;
+		Bounds.Bottom = _bottomWall.position.y;
+		Bounds.Near = playerSpawn.position.z;
+		Bounds.Far = _farWall.position.z;
 
 		if (playerController == null)
 		{
-			playerController = Instantiate<PlayerController>(_playerPrefab, playerSpawn.position, playerSpawn.rotation);
+			playerController = Instantiate<PlayerController>(playerPrefab, playerSpawn.position, playerSpawn.rotation);
 		}
 		playerController.Init();
 	}
@@ -84,6 +92,7 @@ public class GameManager : MonoBehaviour
 
 	public void StartLevel()
 	{
+		State = GameState.Playing;
 		EnemyManager.Instance.SpawnLevelEnemies(Level);
 	}
 

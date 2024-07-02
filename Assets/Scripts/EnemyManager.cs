@@ -1,5 +1,8 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Pool;
+using static UnityEngine.EventSystems.EventTrigger;
 
 public class EnemyManager : MonoBehaviour
 {
@@ -28,6 +31,10 @@ public class EnemyManager : MonoBehaviour
 
 	[SerializeField]
 	private Enemy enemyPrefab = null;
+	[SerializeField]
+	private Enemy[] enemyPrefabs = null;
+
+	private Dictionary<EnemyType, ObjectPool<Enemy>> _enemyPools = new Dictionary<EnemyType, ObjectPool<Enemy>>();
 	
 	private List<Enemy> _enemies = new List<Enemy>();	// Convert this to a pool to fetch enemies from. Would be awesome if no GC for enemies for the entire game huh?
 	private const int MaxRows = 6;
@@ -48,7 +55,6 @@ public class EnemyManager : MonoBehaviour
 	private float MarchInterval = 1f; // #TODO : Set this from the Level Data
 
 	public System.Action<int> MoveEvent = null;
-
 	
 	private float _currentMarchInterval = 1f;
 	private float _updateTimer = 0f;
@@ -60,6 +66,11 @@ public class EnemyManager : MonoBehaviour
 
 	private void Init()
 	{
+		if (_enemyPools.Count == 0)
+		{
+			InitializePools();
+		}
+
 		_currentMarchInterval = MarchInterval;
 		_updateTimer = 0f;
 		_currentDirection = 1;
@@ -74,27 +85,54 @@ public class EnemyManager : MonoBehaviour
 		Init();
 	}
 
+	private void InitializePools()
+	{
+		ObjectPool<Enemy> pool = new ObjectPool<Enemy>(
+			() => { return Instantiate<Enemy>(enemyPrefabs[(int)EnemyType.Easy]); },
+			actionOnGet: e => { e.gameObject.SetActive(true); }, defaultCapacity: 40, maxSize: 70);
+		_enemyPools.Add(EnemyType.Easy, pool);
+
+		pool = new ObjectPool<Enemy>(
+			() => { return Instantiate<Enemy>(enemyPrefabs[(int)EnemyType.Medium]); },
+			actionOnGet: e => { e.gameObject.SetActive(true); }, defaultCapacity: 40, maxSize: 70);
+		_enemyPools.Add(EnemyType.Medium, pool);
+
+		pool = new ObjectPool<Enemy>(
+			() => { return Instantiate<Enemy>(enemyPrefabs[(int)EnemyType.Hard]); },
+			actionOnGet: e => { e.gameObject.SetActive(true); }, defaultCapacity: 40, maxSize: 70);
+		_enemyPools.Add(EnemyType.Hard, pool);
+	}
+
 	public void SpawnLevelEnemies(int level)
 	{
 		// #TODO : Load from the data file for enemy spawn patterns
 		int rows = MaxRows - level;
 		for (int i = 0; i < rows; i++)
 		{
+			// For now, enemies are 30 for topmost row, 20 for next 2 rows, 10 for the remaining
 			for(int j = 0; j < MaxColumns; j++)
 			{
-				Enemy enemy = Instantiate<Enemy>(enemyPrefab);
+				Enemy enemy = GetEnemyToSpawn(EnemyType.Easy);
 				_enemies.Add(enemy);
 				enemy.transform.position = new Vector3(spawnOrigin.position.x + (j * OffsetX), spawnOrigin.position.y, spawnOrigin.position.z + (OffsetY * (-level - i))); // yl - yi = y(l-i)
-				enemy.GetComponent<Renderer>().material.color = Random.ColorHSV();// Placeholder to show different enemies
+				enemy.transform.rotation = spawnOrigin.rotation;
 
 				enemy.Init();
 			}
 		}
 	}
 
+	private Enemy GetEnemyToSpawn(EnemyType enemyType)
+	{
+		return _enemyPools[enemyType].Get();
+	}
+
 	private void Update()
 	{
 		if (!_isInitialized) { return; }
+		
+		if (GameManager.Instance.State != GameState.Playing)
+			return;
 
 		if (_updateTimer < _currentMarchInterval)
 		{
@@ -129,6 +167,8 @@ public class EnemyManager : MonoBehaviour
 	{
 		GameManager.Instance.UpdateScore(enemy.points);
 
+		_enemyPools[enemy.enemyType].Release(enemy);
+		enemy.gameObject.SetActive(false);
 		_enemies.Remove(enemy);
 
 		_currentMarchInterval = Mathf.Max(_currentMarchInterval - 0.02f, 0.2f);

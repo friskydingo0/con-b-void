@@ -7,6 +7,7 @@ TagManager:
   - Wall
   - Bullet
   - PlayerBullet
+  - Enemy
   layers:
   - Default
   - TransparentFX
@@ -14,10 +15,10 @@ TagManager:
   - Wall
   - Water
   - UI
-  - Projectile
-  - 
-  - 
-  - 
+  - PlayerProjectile
+  - EnemyProjectile
+  - Player
+  - Enemy
   - 
   - 
   - 

@@ -18,17 +18,27 @@ public class ProjectileManager
 	private ObjectPool<Projectile> enemyBulletPool;
 	private ObjectPool<Projectile> playerBulletPool;
 
-	private Projectile _projectilePrefab;
+	private Projectile _playerProjectilePf;
+	private Projectile _enemyProjectilePf;
 
 	private ProjectileManager() {
-		//enemyBulletPool = new
-		_projectilePrefab = Resources.Load<Projectile>("Bullet");
+		
+		_playerProjectilePf = Resources.Load<Projectile>("PlayerBullet");
+		_enemyProjectilePf = Resources.Load<Projectile>("EnemyBullet");
+
 		playerBulletPool = new ObjectPool<Projectile>(
-			() => { return GameObject.Instantiate<Projectile>(_projectilePrefab); },
+			() => { return GameObject.Instantiate<Projectile>(_playerProjectilePf); },
 			bullet => { bullet.gameObject.SetActive(true); },
 			bullet => { HitObject(bullet); },
 			bullet => { GameObject.Destroy(bullet.gameObject); },
 			false, 10, 20);
+
+		enemyBulletPool = new ObjectPool<Projectile>(
+			() => { return GameObject.Instantiate<Projectile>(_enemyProjectilePf); },
+			bullet => { bullet.gameObject.SetActive(true); },
+			bullet => { HitObject(bullet); },
+			bullet => { GameObject.Destroy(bullet.gameObject); },
+			false, 50, 90);
 	}
 
 	public void ShootProjectile(Transform spawn, bool isPlayerShot = false, System.Action callback = null)
