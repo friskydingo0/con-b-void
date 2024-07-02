@@ -4,38 +4,55 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    // References
-    [SerializeField]
-    private Transform _shotPoint = null;
+	// References
+	[SerializeField]
+	private Transform _shotPoint = null;
 
-    [SerializeField]
-    private Projectile _bulletObject = null;
+	[SerializeField]
+	private Projectile _bulletObject = null;
 
 	// Public parameters
 	public float _MoveSpeed = 1.0f;
 
 	// Internal stuff
+	private bool isInitialized = false;
+	private bool isShooting = false;
 
 
 	// Start is called before the first frame update
-	void Start()
-    {
+	public void Init()
+	{
+		isInitialized = true;
+	}
 
-    }
+	// Update is called once per frame
+	void Update()
+	{
+		if (!isInitialized) return;
 
-    // Update is called once per frame
-    void Update()
-    {
-        // Placeholder movement for the Gold Spike
-        if (Input.GetKey(KeyCode.A))
-        {
-            // Move left
-            transform.Translate(transform.right * -_MoveSpeed * Time.deltaTime);
-        }
-        else if (Input.GetKey(KeyCode.D))
-        {
-			// Move right
-			transform.Translate(transform.right * _MoveSpeed * Time.deltaTime);
+		float xMove = Input.GetAxisRaw("Horizontal");
+		float yMove = Input.GetAxisRaw("Vertical");
+
+		Vector3 targetPosition = transform.position;
+		targetPosition.x = Mathf.Clamp(transform.position.x + xMove * _MoveSpeed * Time.deltaTime, GameManager.Instance.bounds.Left, GameManager.Instance.bounds.Right);
+		targetPosition.y = Mathf.Clamp(transform.position.y + yMove * _MoveSpeed * Time.deltaTime, GameManager.Instance.bounds.Bottom, GameManager.Instance.bounds.Top);
+		
+		transform.position = targetPosition;
+
+		if (Input.GetKeyDown(KeyCode.Space) && !isShooting)
+		{
+			Shoot();
 		}
-    }
+	}
+
+	private void Shoot()
+	{
+		ProjectileManager.Instance.ShootProjectile(_shotPoint, true, ReturnShot);
+		isShooting = true;
+	}
+
+	public void ReturnShot()
+	{
+		isShooting = false;
+	}
 }
