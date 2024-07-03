@@ -6,6 +6,8 @@ public class PlayerController : MonoBehaviour
 {
 	public int LivesLeft {  get; private set; }
 	public const int MaxLives = 3;
+	public static int MaxBullets {  get; private set; }
+	private const int DefaultBullets = 1;
 
 	// References
 	[SerializeField]
@@ -19,11 +21,11 @@ public class PlayerController : MonoBehaviour
 
 	// Internal stuff
 	private bool isInitialized = false;
-	private bool isShooting = false;
 
 
 	public void Init()
 	{
+		MaxBullets = DefaultBullets;
 		LivesLeft = MaxLives;
 		isInitialized = true;
 	}
@@ -32,6 +34,15 @@ public class PlayerController : MonoBehaviour
 	{
 		transform.position = revivePos;
 		isInitialized = true;
+	}
+
+	/// <summary>
+	/// Unused. Use this to increase the no. of shots the player can take before having to wait. Default = 1
+	/// </summary>
+	/// <param name="maxBullets"></param>
+	public void UpdateShootingCapacity(int maxBullets)
+	{
+		MaxBullets = maxBullets;
 	}
 
 	// Update is called once per frame
@@ -48,7 +59,7 @@ public class PlayerController : MonoBehaviour
 		
 		transform.position = targetPosition;
 
-		if (Input.GetKeyDown(KeyCode.Space) && !isShooting)
+		if (Input.GetKeyDown(KeyCode.Space))
 		{
 			Shoot();
 		}
@@ -68,7 +79,6 @@ public class PlayerController : MonoBehaviour
 			if (LivesLeft <= 0)
 			{
 				// Game over
-
 			}
 			else
 			{
@@ -79,12 +89,6 @@ public class PlayerController : MonoBehaviour
 
 	private void Shoot()
 	{
-		ProjectileManager.Instance.ShootProjectile(_shotPoint, true, ReturnShot);
-		isShooting = true;
-	}
-
-	public void ReturnShot()
-	{
-		isShooting = false;
+		ProjectileManager.Instance.ShootProjectile(_shotPoint, true);
 	}
 }

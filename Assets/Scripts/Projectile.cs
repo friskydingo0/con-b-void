@@ -7,13 +7,11 @@ public class Projectile : MonoBehaviour, IRevivalListener
 {
     // Preset parameters
     public float _Speed = 1f;
-	private System.Action _hitCallback = null;
 	public bool IsPlayerShot = false;
 
-	public void Initialize(float speed, bool isplayerShot, System.Action hitCallback)
+	public void Initialize(float speed, bool isplayerShot)
 	{
 		GameManager.Instance.OnPlayerRevival += OnPlayerRevival;
-		_hitCallback = hitCallback;
 		IsPlayerShot = isplayerShot;
 	}
 
@@ -28,7 +26,6 @@ public class Projectile : MonoBehaviour, IRevivalListener
 
 	private void OnTriggerEnter(Collider other)
 	{
-		_hitCallback?.Invoke();
 		Recycle();
 	}
 

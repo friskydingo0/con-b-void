@@ -41,12 +41,17 @@ public class ProjectileManager
 			false, 50, 90);
 	}
 
-	public void ShootProjectile(Transform spawn, bool isPlayerShot = false, System.Action callback = null)
+	public void ShootProjectile(Transform spawn, bool isPlayerShot = false)
 	{
 		Projectile p;
 		if (isPlayerShot)
 		{
-			p = playerBulletPool.Get();
+			if (playerBulletPool.CountActive < PlayerController.MaxBullets)
+			{
+				p = playerBulletPool.Get();
+			}
+			else
+				return;
 		}
 		else
 		{
@@ -54,7 +59,7 @@ public class ProjectileManager
 		}
 		p.transform.position = spawn.position;
 		p.transform.rotation = spawn.rotation;
-		p.Initialize(1f, isPlayerShot, callback);
+		p.Initialize(1f, isPlayerShot);
 	}
 
 	public void ReturnProjectile(Projectile projectile)
