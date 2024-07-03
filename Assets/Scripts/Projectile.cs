@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
 
-public class Projectile : MonoBehaviour
+public class Projectile : MonoBehaviour, IRevivalListener
 {
     // Preset parameters
     public float _Speed = 1f;
@@ -12,6 +12,7 @@ public class Projectile : MonoBehaviour
 
 	public void Initialize(float speed, bool isplayerShot, System.Action hitCallback)
 	{
+		GameManager.Instance.OnPlayerRevival += OnPlayerRevival;
 		_hitCallback = hitCallback;
 		IsPlayerShot = isplayerShot;
 	}
@@ -27,14 +28,18 @@ public class Projectile : MonoBehaviour
 
 	private void OnTriggerEnter(Collider other)
 	{
+		_hitCallback?.Invoke();
 		Recycle();
-		Debug.Log("Hit " + other.gameObject);
 	}
 
-	private void Recycle()
+	public void Recycle()
 	{
-		//Assert.IsNotNull(_hitCallback);
-		_hitCallback?.Invoke();
+		GameManager.Instance.OnPlayerRevival -= OnPlayerRevival;
 		ProjectileManager.Instance.ReturnProjectile(this);
+	}
+
+	public void OnPlayerRevival()
+	{
+		Recycle();
 	}
 }

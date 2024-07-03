@@ -16,11 +16,12 @@ public class BunkerPiece : MonoBehaviour
 
 	private void OnTriggerEnter(Collider other)
 	{
-		if (other.CompareTag("Bullet") || other.CompareTag("PlayerBullet"))
+		if (other.CompareTag("EnemyBullet") || other.CompareTag("PlayerBullet"))
 		{
 			hitsRemaining--;
 			if (hitsRemaining == 0)
 			{
+				GetComponent<Collider>().enabled = false;
 				gameObject.SetActive(false);
 			}
 			
@@ -30,6 +31,12 @@ public class BunkerPiece : MonoBehaviour
 			color.g *= 0.75f;
 			color.b *= 0.75f;
 			_renderer.material.color = color;
+		}
+		if (other.CompareTag("Enemy"))
+		{
+			hitsRemaining = 0;
+			GetComponent<Collider>().enabled = false;
+			gameObject.SetActive(false);
 		}
 	}
 }

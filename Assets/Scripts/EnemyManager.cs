@@ -153,13 +153,10 @@ public class EnemyManager : MonoBehaviour
 
 	public void EdgeReached()
 	{
-		Debug.Log("Edge Reached");
 		if (_currentDirection != 0)
 		{
 			_previousDirection = _currentDirection > 0 ? -1 : 1;
 			_currentDirection = 0;
-
-			Debug.Log("Direction flipped");
 		}
 	}
 

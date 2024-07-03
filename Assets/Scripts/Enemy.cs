@@ -8,7 +8,7 @@ public enum EnemyType
 	Hard
 }
 
-public class Enemy : MonoBehaviour
+public class Enemy : MonoBehaviour, IRevivalListener
 {
 	public EnemyType enemyType;
 	public int points = 0;
@@ -34,6 +34,7 @@ public class Enemy : MonoBehaviour
 
 	public void Init()
 	{
+		GameManager.Instance.OnPlayerRevival += OnPlayerRevival;
 		EnemyManager.Instance.MoveEvent += Move;
 		_shotTimer = 0f;
 		_isInitComplete = true;
@@ -110,10 +111,16 @@ public class Enemy : MonoBehaviour
 	public void ApplyDamage()
 	{
 		StopAllCoroutines();
+		GameManager.Instance.OnPlayerRevival -= OnPlayerRevival;
 		EnemyManager.Instance.MoveEvent -= Move;
 		EnemyManager.Instance.EnemyKilled(this);
 		
 		_isInitComplete = false;
+	}
+
+	public void OnPlayerRevival()
+	{
+
 	}
 
 	private void OnMouseDown()

@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
+	public int LivesLeft {  get; private set; }
+	public const int MaxLives = 3;
+
 	// References
 	[SerializeField]
 	private Transform _shotPoint = null;
@@ -19,9 +22,15 @@ public class PlayerController : MonoBehaviour
 	private bool isShooting = false;
 
 
-	// Start is called before the first frame update
 	public void Init()
 	{
+		LivesLeft = MaxLives;
+		isInitialized = true;
+	}
+
+	public void ReviveAtPosition(Vector3 revivePos)
+	{
+		transform.position = revivePos;
 		isInitialized = true;
 	}
 
@@ -42,6 +51,29 @@ public class PlayerController : MonoBehaviour
 		if (Input.GetKeyDown(KeyCode.Space) && !isShooting)
 		{
 			Shoot();
+		}
+	}
+
+	private void OnTriggerEnter(Collider other)
+	{
+		if (!isInitialized) return;
+
+		if (other.CompareTag("EnemyBullet"))
+		{
+			// Play particle effect
+			
+			isInitialized = false;
+			LivesLeft--;
+
+			if (LivesLeft <= 0)
+			{
+				// Game over
+
+			}
+			else
+			{
+				GameManager.Instance.RevivePlayer();
+			}
 		}
 	}
 

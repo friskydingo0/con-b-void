@@ -65,6 +65,8 @@ public class GameManager : MonoBehaviour
 	private float[] pitches = null;
 	private int pitchIndex = 0;
 
+	public System.Action OnPlayerRevival { get; set; }
+
 	private void Init()
 	{
 		// Get the bounds and keep them ready
@@ -103,9 +105,39 @@ public class GameManager : MonoBehaviour
 		EnemyManager.Instance.ReInit();
 	}
 
+	public void RevivePlayer()
+	{
+		StartCoroutine(RevivalSequence());
+	}
+
+	IEnumerator RevivalSequence()
+	{
+		// Pause game
+		State = GameState.Paused;
+
+		// Clear all projectiles
+		OnPlayerRevival?.Invoke();
+
+		yield return new WaitForSecondsRealtime(1f);
+
+		// Replace player and play effect
+		playerController.ReviveAtPosition(playerSpawn.position);
+
+		// Update UI
+
+
+		// Resume playing
+		State = GameState.Playing;
+	}
+
 	public void PlayBoom()
 	{
 		audioSource.pitch = pitches[pitchIndex++ % pitches.Length];
 		audioSource.Play();
+	}
+
+	public void EndGame(string reason)
+	{
+		Debug.Log(reason);
 	}
 }
