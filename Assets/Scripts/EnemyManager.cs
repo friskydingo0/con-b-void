@@ -36,7 +36,7 @@ public class EnemyManager : MonoBehaviour
 
 	private Dictionary<EnemyType, ObjectPool<Enemy>> _enemyPools = new Dictionary<EnemyType, ObjectPool<Enemy>>();
 	
-	private List<Enemy> _enemies = new List<Enemy>();	// Convert this to a pool to fetch enemies from. Would be awesome if no GC for enemies for the entire game huh?
+	private List<Enemy> _enemies = new List<Enemy>();	// Kinda wanna keep this to check how many enemies are still active. Maybe to affect the game based on how many left?
 	private const int MaxRows = 6;
 	private const int MaxColumns = 11;
 	private const int MaxStacks = 1;
@@ -105,16 +105,17 @@ public class EnemyManager : MonoBehaviour
 
 	public void SpawnLevelEnemies(int level)
 	{
-		// #TODO : Load from the data file for enemy spawn patterns
-		int rows = MaxRows - level;
-		for (int i = 0; i < rows; i++)
+		LevelInfo levelInfo = GameManager.Instance.LevelDatabase.levels[level - 1];
+		
+		int startingRow = levelInfo.StartingRow;
+		for (int i = 0; i < levelInfo.Rows.Count; i++)
 		{
-			// For now, enemies are 30 for topmost row, 20 for next 2 rows, 10 for the remaining
+			EnemyType eType = levelInfo.Rows[i];
 			for(int j = 0; j < MaxColumns; j++)
 			{
-				Enemy enemy = GetEnemyToSpawn(EnemyType.Easy);
+				Enemy enemy = GetEnemyToSpawn(eType);
 				_enemies.Add(enemy);
-				enemy.transform.position = new Vector3(spawnOrigin.position.x + (j * OffsetX), spawnOrigin.position.y, spawnOrigin.position.z + (OffsetY * (-level - i))); // yl - yi = y(l-i)
+				enemy.transform.position = new Vector3(spawnOrigin.position.x + (j * OffsetX), spawnOrigin.position.y, spawnOrigin.position.z + (OffsetY * (-startingRow - i)));
 				enemy.transform.rotation = spawnOrigin.rotation;
 
 				enemy.Init();

@@ -58,6 +58,8 @@ public class GameManager : MonoBehaviour
 	[Header("Level")]
 	public int Level = 1;
 
+	public LevelData LevelDatabase {  get; private set; }
+
 	[Header("Audio")]
 	[SerializeField]
 	private AudioSource audioSource = null;
@@ -82,6 +84,8 @@ public class GameManager : MonoBehaviour
 			playerController = Instantiate<PlayerController>(playerPrefab, playerSpawn.position, playerSpawn.rotation);
 		}
 		playerController.Init();
+
+		LevelDatabase = Resources.Load<LevelData>("LevelData");
 	}
 
 	public void UpdateScore(int score)
