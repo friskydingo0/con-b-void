@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Pool;
 
-public class ProjectileManager
+public class ProjectileManager : IGameStateListener
 {
 	private static ProjectileManager instance;
 	public static ProjectileManager Instance {
@@ -15,8 +15,8 @@ public class ProjectileManager
 		}
 	}
 
-	private ObjectPool<Projectile> enemyBulletPool;
-	private ObjectPool<Projectile> playerBulletPool;
+	private ObjectPool<Projectile> _enemyBulletPool;
+	private ObjectPool<Projectile> _playerBulletPool;
 
 	private Projectile _playerProjectilePf;
 	private Projectile _enemyProjectilePf;
@@ -26,14 +26,14 @@ public class ProjectileManager
 		_playerProjectilePf = Resources.Load<Projectile>("PlayerBullet");
 		_enemyProjectilePf = Resources.Load<Projectile>("EnemyBullet");
 
-		playerBulletPool = new ObjectPool<Projectile>(
+		_playerBulletPool = new ObjectPool<Projectile>(
 			() => { return GameObject.Instantiate<Projectile>(_playerProjectilePf); },
 			bullet => { bullet.gameObject.SetActive(true); },
 			bullet => { HitObject(bullet); },
 			bullet => { GameObject.Destroy(bullet.gameObject); },
 			false, 10, 20);
 
-		enemyBulletPool = new ObjectPool<Projectile>(
+		_enemyBulletPool = new ObjectPool<Projectile>(
 			() => { return GameObject.Instantiate<Projectile>(_enemyProjectilePf); },
 			bullet => { bullet.gameObject.SetActive(true); },
 			bullet => { HitObject(bullet); },
@@ -46,16 +46,16 @@ public class ProjectileManager
 		Projectile p;
 		if (isPlayerShot)
 		{
-			if (playerBulletPool.CountActive < PlayerController.MaxBullets)
+			if (_playerBulletPool.CountActive < PlayerController.MaxBullets)
 			{
-				p = playerBulletPool.Get();
+				p = _playerBulletPool.Get();
 			}
 			else
 				return;
 		}
 		else
 		{
-			p = enemyBulletPool.Get();
+			p = _enemyBulletPool.Get();
 		}
 		p.transform.position = spawn.position;
 		p.transform.rotation = spawn.rotation;
@@ -66,11 +66,11 @@ public class ProjectileManager
 	{
 		if (projectile.IsPlayerShot)
 		{
-			playerBulletPool.Release(projectile);
+			_playerBulletPool.Release(projectile);
 		}
 		else
 		{
-			enemyBulletPool.Release(projectile);
+			_enemyBulletPool.Release(projectile);
 		}
 	}
 
@@ -79,5 +79,9 @@ public class ProjectileManager
 		projectile.gameObject.SetActive(false);
 		// Do something interesting
 	}
-	
+
+	public void OnGameStateChanged(GameState fromState, GameState toState)
+	{
+		throw new System.NotImplementedException();
+	}
 }

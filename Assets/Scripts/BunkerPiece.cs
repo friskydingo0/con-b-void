@@ -26,11 +26,8 @@ public class BunkerPiece : MonoBehaviour
 			}
 			
 			// Update visuals
-			Color color = _renderer.material.color;
-			color.r *= 0.75f;
-			color.g *= 0.75f;
-			color.b *= 0.75f;
-			_renderer.material.color = color;
+			float percentage = 1f - (float)hitsRemaining / (float)totalHits;
+			_renderer.material.SetFloat("_DissolveAmount", percentage);
 		}
 		if (other.CompareTag("Enemy"))
 		{

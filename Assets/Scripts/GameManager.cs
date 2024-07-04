@@ -10,10 +10,10 @@ public struct LevelBounds
 
 public enum GameState
 {
-	MainMenu, Playing, Paused, Victory, GameOver
+	MainMenu, Playing, Paused, Waiting, Victory, GameOver
 }
 
-public class GameManager : MonoBehaviour
+public class GameManager : MonoBehaviour, IGameStateListener
 {
 	#region Singleton
 	private static GameManager _instance = null;
@@ -41,9 +41,19 @@ public class GameManager : MonoBehaviour
 	[SerializeField] private Transform _bottomWall = null;
 	[SerializeField] private Transform _farWall = null;
 
-	// Game State
-	public GameState State { get; private set; }
-	
+	// Very basic FSM for tracking game state
+	private System.Action<GameState, GameState> _OnGameStateChanged;
+	private GameState _state = GameState.MainMenu;
+	public GameState State {
+		get { 
+			return _state;
+		}
+		set	{
+			_OnGameStateChanged?.Invoke(_state, value);
+			_state = value;
+		}
+	}
+
 	[Header("Player")]
 	[SerializeField]
 	private PlayerController playerPrefab = null;
@@ -54,6 +64,9 @@ public class GameManager : MonoBehaviour
 	private Transform playerSpawn = null;
 
 	public int Score { get; private set; }
+	public int HiScore { get; private set; }
+
+	private UIHandler _uiHandler = null;
 
 	[Header("Level")]
 	public int Level = 1;
@@ -76,8 +89,10 @@ public class GameManager : MonoBehaviour
 		Bounds.Right = _rightWall.position.x;
 		Bounds.Top = _topWall.position.y;
 		Bounds.Bottom = _bottomWall.position.y;
-		Bounds.Near = playerSpawn.position.z;
+		Bounds.Near = playerSpawn.position.z - 1f;
 		Bounds.Far = _farWall.position.z;
+
+		_uiHandler = FindFirstObjectByType<UIHandler>();
 
 		if (playerController == null)
 		{
@@ -86,17 +101,20 @@ public class GameManager : MonoBehaviour
 		playerController.Init();
 
 		LevelDatabase = Resources.Load<LevelData>("LevelData");
+		HiScore = PlayerPrefs.GetInt("HiScore", 0);
 	}
 
-	public void UpdateScore(int score)
+	public void AddScore(int score)
 	{
 		Score += score;
-		// Update the UI
+		bool isHiScore = Score > HiScore;
+		if (isHiScore)
+			HiScore = Score;
 
-		Debug.LogFormat("Score: {0}", Score);
+		_uiHandler.UpdateScore(Score, isHiScore);
 	}
 
-	public void StartLevel()
+	public void StartGame()
 	{
 		State = GameState.Playing;
 		EnemyManager.Instance.SpawnLevelEnemies(Level);
@@ -106,6 +124,13 @@ public class GameManager : MonoBehaviour
 	{ 
 		// Do the cleanup and reset the level
 		Level++;
+		if (Level >= LevelDatabase.levels.Count)
+		{
+			// Win condition
+			State = GameState.Victory;
+			EndGame(true);
+			return;
+		}
 		EnemyManager.Instance.ReInit();
 	}
 
@@ -117,7 +142,7 @@ public class GameManager : MonoBehaviour
 	IEnumerator RevivalSequence()
 	{
 		// Pause game
-		State = GameState.Paused;
+		State = GameState.Waiting;
 
 		// Clear all projectiles
 		OnPlayerRevival?.Invoke();
@@ -128,7 +153,7 @@ public class GameManager : MonoBehaviour
 		playerController.ReviveAtPosition(playerSpawn.position);
 
 		// Update UI
-
+		//_uiHandler.UpdateLives();
 
 		// Resume playing
 		State = GameState.Playing;
@@ -140,8 +165,22 @@ public class GameManager : MonoBehaviour
 		audioSource.Play();
 	}
 
-	public void EndGame(string reason)
+	public void EndGame(bool didWin)
 	{
-		Debug.Log(reason);
+		PlayerPrefs.SetInt("HiScore", Score);
+		PlayerPrefs.Save();
+	}
+
+	public void BackToTitleScreen()
+	{
+		State = GameState.MainMenu;
+
+		// Reset score
+		Score = 0;
+	}
+
+	public void OnGameStateChanged(GameState fromState, GameState toState)
+	{
+		// Do all the state related handling here
 	}
 }

@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerController : MonoBehaviour
+public class PlayerController : MonoBehaviour, IGameStateListener
 {
 	public int LivesLeft {  get; private set; }
 	public const int MaxLives = 3;
@@ -11,7 +11,11 @@ public class PlayerController : MonoBehaviour
 
 	// References
 	[SerializeField]
-	private Transform _shotPoint = null;
+	private Transform shotPoint = null;
+	[SerializeField]
+	private Transform modelRoot = null;
+	[SerializeField]
+	private Vector3 tiltOffset = Vector3.zero;
 
 	[SerializeField]
 	private Projectile _bulletObject = null;
@@ -21,7 +25,15 @@ public class PlayerController : MonoBehaviour
 
 	// Internal stuff
 	private bool isInitialized = false;
+	private Vector3 _tiltMin = Vector3.zero;
+	private Vector3 _tiltMax = Vector3.zero;
 
+
+	private void Awake()
+	{
+		_tiltMax = Vector3.zero - tiltOffset;
+		_tiltMin = Vector3.zero + tiltOffset;
+	}
 
 	public void Init()
 	{
@@ -45,7 +57,6 @@ public class PlayerController : MonoBehaviour
 		MaxBullets = maxBullets;
 	}
 
-	// Update is called once per frame
 	void Update()
 	{
 		if (!isInitialized) return;
@@ -58,6 +69,10 @@ public class PlayerController : MonoBehaviour
 		targetPosition.y = Mathf.Clamp(transform.position.y + yMove * _MoveSpeed * Time.deltaTime, GameManager.Instance.Bounds.Bottom, GameManager.Instance.Bounds.Top);
 		
 		transform.position = targetPosition;
+
+		float dir = Input.GetAxis("Horizontal");
+		float t = Mathf.Clamp((1f + dir) / 2f, -1f, 1f);
+		modelRoot.localEulerAngles = Vector3.Lerp(_tiltMin, _tiltMax, t);
 
 		if (Input.GetKeyDown(KeyCode.Space))
 		{
@@ -89,6 +104,11 @@ public class PlayerController : MonoBehaviour
 
 	private void Shoot()
 	{
-		ProjectileManager.Instance.ShootProjectile(_shotPoint, true);
+		ProjectileManager.Instance.ShootProjectile(shotPoint, true);
+	}
+
+	public void OnGameStateChanged(GameState fromState, GameState toState)
+	{
+		throw new System.NotImplementedException();
 	}
 }

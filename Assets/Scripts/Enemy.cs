@@ -14,7 +14,7 @@ public class Enemy : MonoBehaviour, IRevivalListener
 	public int points = 0;
 	public float shotInterval = 1.5f;
 
-	private const float _MoveDuration = 0.1f;	// For smoothing. Shouldn't be higher than the fastest move interval (from the EnemyManager)
+	private const float _MoveDuration = 0.2f;	// For smoothing. Shouldn't be higher than the fastest move interval (from the EnemyManager)
 
 	[SerializeField, Range(0.1f, 3f)]
 	private float MoveOffset = 0.25f;
@@ -22,6 +22,11 @@ public class Enemy : MonoBehaviour, IRevivalListener
 	[SerializeField]
 	private Transform shotSpawn = null;
 	private Transform _modelRoot = null;
+
+	[SerializeField]
+	private Vector3 _frontTilt = Vector3.zero;
+	[SerializeField]
+	private Vector3 _sideTilt = Vector3.zero;
 
 	private float _shotTimer = 0f;
 
@@ -40,9 +45,21 @@ public class Enemy : MonoBehaviour, IRevivalListener
 		_isInitComplete = true;
 	}
 
-	private void Move(int dir)
+	private void Move(int dir, bool shouldSmooth = true)
 	{
-		StartCoroutine(SmoothMove(dir));
+		if (shouldSmooth)
+		{
+			StartCoroutine(SmoothTilt(dir));
+			StartCoroutine(SmoothMove(dir));
+		}
+		else
+		{
+			Vector3 newPos = transform.position;
+			newPos.x = dir != 0 ? newPos.x + (MoveOffset * dir) : newPos.x;
+			newPos.z = dir != 0 ? newPos.z : newPos.z - MoveOffset;
+
+			transform.position = newPos;
+		}
 	}
 
 	IEnumerator SmoothMove(int dir)
@@ -54,7 +71,7 @@ public class Enemy : MonoBehaviour, IRevivalListener
 		newPos.z = dir != 0 ? newPos.z : newPos.z - MoveOffset;
 		float t = 0;
 		Vector3 startPos = transform.position;
-		
+
 		while (transform.position != newPos)
 		{
 			transform.position = Vector3.Lerp(startPos, newPos, t / _MoveDuration);
@@ -63,12 +80,56 @@ public class Enemy : MonoBehaviour, IRevivalListener
 		}
 	}
 
+	IEnumerator SmoothTilt(int dir)
+	{
+		Vector3 startAngles = Vector3.zero;
+		Vector3 targetAngles = Vector3.zero;
+
+		if (dir != 0)
+		{
+			startAngles = Vector3.zero;
+			targetAngles = Vector3.zero + dir * _sideTilt;
+
+			yield return StartCoroutine(DoTilt(startAngles, targetAngles, _MoveDuration / 2f));
+
+			startAngles = _modelRoot.localEulerAngles;
+			targetAngles = Vector3.zero;
+
+			yield return StartCoroutine(DoTilt(startAngles, targetAngles, _MoveDuration / 2f));
+		}
+		else
+		{
+			startAngles = Vector3.zero;
+			targetAngles = Vector3.zero + _frontTilt;
+
+			yield return StartCoroutine(DoTilt(startAngles, targetAngles, _MoveDuration / 2f));
+
+			startAngles = _modelRoot.localEulerAngles;
+			targetAngles = Vector3.zero;
+
+			yield return StartCoroutine(DoTilt(startAngles, targetAngles, _MoveDuration / 2f));
+		}
+	}
+	
+	IEnumerator DoTilt(Vector3 startAngles, Vector3 targetAngles, float duration)
+	{
+		float elapsed = 0f;
+
+		while (elapsed < duration)
+		{
+			_modelRoot.localRotation = Quaternion.Lerp(Quaternion.Euler(startAngles), Quaternion.Euler(targetAngles), elapsed / duration);
+			//_modelRoot.localEulerAngles = Vector3.Lerp(startAngles, targetAngles, elapsed / duration);
+			yield return null;
+			elapsed += Time.deltaTime;
+		}
+	}
+
 	private void CheckAndShoot()
 	{
 		if (_shotTimer > shotInterval)
 		{
 			RaycastHit hitInfo;
-			if (!Physics.Raycast(transform.position, transform.forward, out hitInfo, 1.5f, 1 << gameObject.layer))
+			if (!Physics.Raycast(transform.position, transform.forward, out hitInfo, 5f, 1 << gameObject.layer))
 			{
 				if (Random.Range(0f, 1f) > 0.95f)
 				{

@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.Pool;
 using static UnityEngine.EventSystems.EventTrigger;
 
-public class EnemyManager : MonoBehaviour
+public class EnemyManager : MonoBehaviour, IGameStateListener
 {
 	/// <summary>
 	/// Pseudo-singleton class for maintaining enemy updates
@@ -54,7 +54,7 @@ public class EnemyManager : MonoBehaviour
 	[SerializeField]
 	private float MarchInterval = 1f; // #TODO : Set this from the Level Data
 
-	public System.Action<int> MoveEvent = null;
+	public System.Action<int, bool> MoveEvent = null;
 	
 	private float _currentMarchInterval = 1f;
 	private float _updateTimer = 0f;
@@ -105,7 +105,7 @@ public class EnemyManager : MonoBehaviour
 
 	public void SpawnLevelEnemies(int level)
 	{
-		LevelInfo levelInfo = GameManager.Instance.LevelDatabase.levels[level - 1];
+		LevelInfo levelInfo = GameManager.Instance.LevelDatabase.levels[level - 1]; // because level data is 0-indexed in the LevelData asset
 		
 		int startingRow = levelInfo.StartingRow;
 		for (int i = 0; i < levelInfo.Rows.Count; i++)
@@ -143,7 +143,7 @@ public class EnemyManager : MonoBehaviour
 		{
 			_updateTimer = 0f;
 			GameManager.Instance.PlayBoom();	// It's so much fun with this effect. Like a marching order.
-			MoveEvent?.Invoke(_currentDirection);
+			MoveEvent?.Invoke(_currentDirection, (_currentMarchInterval <= (MarchInterval + 0.1f)));
 			if (_currentDirection == 0)
 			{
 				_currentDirection = _previousDirection;
@@ -163,7 +163,7 @@ public class EnemyManager : MonoBehaviour
 
 	public void EnemyKilled(Enemy enemy)
 	{
-		GameManager.Instance.UpdateScore(enemy.points);
+		GameManager.Instance.AddScore(enemy.points);
 
 		_enemyPools[enemy.enemyType].Release(enemy);
 		enemy.gameObject.SetActive(false);
@@ -174,6 +174,11 @@ public class EnemyManager : MonoBehaviour
 		{
 			GameManager.Instance.NextLevel();
 		}
+	}
+
+	public void OnGameStateChanged(GameState fromState, GameState toState)
+	{
+		throw new NotImplementedException();
 	}
 
 	// Spawn special enemies

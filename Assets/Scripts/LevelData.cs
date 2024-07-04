@@ -13,7 +13,6 @@ public class LevelData : ScriptableObject
 public struct LevelInfo
 {
     public int Level;
-    //public int Rows;
     public int StartingRow;
 
     [SerializeField]

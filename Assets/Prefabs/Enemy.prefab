@@ -188,6 +188,8 @@ MonoBehaviour:
   shotInterval: 1.5
   MoveOffset: 0.25
   shotSpawn: {fileID: 6047998977887261063}
+  _frontTilt: {x: 30, y: 0, z: 0}
+  _sideTilt: {x: 0, y: 0, z: 30}
 --- !u!54 &-5569797313631698281
 Rigidbody:
   m_ObjectHideFlags: 0
