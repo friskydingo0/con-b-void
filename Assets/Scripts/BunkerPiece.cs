@@ -4,14 +4,19 @@ using UnityEngine;
 
 public class BunkerPiece : MonoBehaviour
 {
-    private const int totalHits = 4;
-	private int hitsRemaining = 4;
+    private const int totalHits = 2;
+	private int hitsRemaining = 2;
 
 	private Renderer _renderer = null;
 
 	private void Awake()
 	{
 		_renderer = GetComponent<Renderer>();
+	}
+
+	private void OnEnable()
+	{
+		hitsRemaining = totalHits;
 	}
 
 	private void OnTriggerEnter(Collider other)

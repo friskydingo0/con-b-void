@@ -152,7 +152,7 @@ public class Enemy : MonoBehaviour, IRevivalListener
 
 		if (Mathf.Approximately(transform.position.z, GameManager.Instance.Bounds.Near))
 		{
-			// Game over
+			GameManager.Instance.EndGame(false);
 		}
 	}
 

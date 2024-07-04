@@ -30,12 +30,17 @@ public class EnemyManager : MonoBehaviour, IGameStateListener
 	#endregion
 
 	[SerializeField]
-	private Enemy enemyPrefab = null;
+	private SpecialEnemy specialEnemyPrefab = null;
 	[SerializeField]
 	private Enemy[] enemyPrefabs = null;
 
 	private Dictionary<EnemyType, ObjectPool<Enemy>> _enemyPools = new Dictionary<EnemyType, ObjectPool<Enemy>>();
-	
+
+	[SerializeField]
+	private List<Transform> specialSpawns = new List<Transform>();
+	private SpecialEnemy _specialEnemy = null;
+	private const float _SpecialEnemyChance = 0.05f;
+
 	private List<Enemy> _enemies = new List<Enemy>();	// Kinda wanna keep this to check how many enemies are still active. Maybe to affect the game based on how many left?
 	private const int MaxRows = 6;
 	private const int MaxColumns = 11;
@@ -69,6 +74,8 @@ public class EnemyManager : MonoBehaviour, IGameStateListener
 		if (_enemyPools.Count == 0)
 		{
 			InitializePools();
+			_specialEnemy = Instantiate<SpecialEnemy>(specialEnemyPrefab);
+			_specialEnemy.gameObject.SetActive(false);
 		}
 
 		_currentMarchInterval = MarchInterval;
@@ -149,6 +156,7 @@ public class EnemyManager : MonoBehaviour, IGameStateListener
 				_currentDirection = _previousDirection;
 				_previousDirection = _currentDirection;
 			}
+			SpawnSpecialEnemy();
 		}
 	}
 
@@ -159,6 +167,25 @@ public class EnemyManager : MonoBehaviour, IGameStateListener
 			_previousDirection = _currentDirection > 0 ? -1 : 1;
 			_currentDirection = 0;
 		}
+	}
+
+	private void SpawnSpecialEnemy()
+	{
+		if (!_specialEnemy.gameObject.activeSelf)
+		{
+			float chance = UnityEngine.Random.Range(0f, 1f);
+			if (chance < _SpecialEnemyChance)
+			{
+				int startPos = UnityEngine.Random.Range(0, 2);
+				int endPos = (startPos + 1) % 2;
+				_specialEnemy.Init(specialSpawns[startPos].position, specialSpawns[endPos].position);
+			}
+		}
+	}
+
+	public void SpecialEnemyKilled(int score)
+	{
+		GameManager.Instance.AddScore(score);
 	}
 
 	public void EnemyKilled(Enemy enemy)
