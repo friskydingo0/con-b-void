@@ -148,6 +148,7 @@ public class GameManager : MonoBehaviour, IGameStateListener
 	public void StartGame()
 	{
 		State = GameState.Playing;
+		LivesLeft = MaxLives;
 		EnemyManager.Instance.SpawnLevelEnemies(Level);
 	}
 
