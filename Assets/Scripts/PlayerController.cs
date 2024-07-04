@@ -109,6 +109,6 @@ public class PlayerController : MonoBehaviour, IGameStateListener
 
 	public void OnGameStateChanged(GameState fromState, GameState toState)
 	{
-		throw new System.NotImplementedException();
+		
 	}
 }

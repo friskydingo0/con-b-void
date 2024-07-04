@@ -24,7 +24,6 @@ public class GameManager : MonoBehaviour, IGameStateListener
 		if (_instance == null)
 		{
 			_instance = this;
-			Init();
 		}
 		else
 		{
@@ -83,7 +82,12 @@ public class GameManager : MonoBehaviour, IGameStateListener
 	private float[] pitches = null;
 	private int pitchIndex = 0;
 
-	public System.Action OnPlayerRevival { get; set; }
+	public System.Action<bool> OnPlayerRevival { get; set; }
+
+	private void Start()
+	{
+		Init();
+	}
 
 	private void Init()
 	{
@@ -102,15 +106,29 @@ public class GameManager : MonoBehaviour, IGameStateListener
 			playerController = Instantiate<PlayerController>(playerPrefab, playerSpawn.position, playerSpawn.rotation);
 		}
 		playerController.Init();
+		EnemyManager.Instance.Init();
 
 		LivesLeft = MaxLives;
 
 		LevelDatabase = Resources.Load<LevelData>("LevelData");
 		HiScore = PlayerPrefs.GetInt("HiScore", 0);
+
+		RegisterStateChangeListeners();
+	}
+
+	public void AddStateListener(System.Action<GameState, GameState> listener)
+	{
+		_OnGameStateChanged += listener;
+	}
+
+	public void RemoveStateListener(System.Action<GameState, GameState> listener)
+	{
+		_OnGameStateChanged -= listener; 
 	}
 
 	private void RegisterStateChangeListeners()
 	{
+		_OnGameStateChanged += OnGameStateChanged;
 		_OnGameStateChanged += _uiHandler.OnGameStateChanged;
 		_OnGameStateChanged += playerController.OnGameStateChanged;
 		_OnGameStateChanged += EnemyManager.Instance.OnGameStateChanged;
@@ -131,6 +149,16 @@ public class GameManager : MonoBehaviour, IGameStateListener
 	{
 		State = GameState.Playing;
 		EnemyManager.Instance.SpawnLevelEnemies(Level);
+	}
+
+	public void Pause()
+	{
+		State = GameState.Paused;
+	}
+
+	public void Resume()
+	{
+		State = GameState.Playing;
 	}
 
 	public void NextLevel()
@@ -176,7 +204,7 @@ public class GameManager : MonoBehaviour, IGameStateListener
 		State = GameState.Waiting;
 
 		// Clear all projectiles
-		OnPlayerRevival?.Invoke();
+		OnPlayerRevival?.Invoke(false);
 
 		yield return new WaitForSecondsRealtime(1f);
 
@@ -186,8 +214,12 @@ public class GameManager : MonoBehaviour, IGameStateListener
 		// Update UI
 		_uiHandler.UpdatePlayerLives(LivesLeft);
 
+		yield return new WaitForSecondsRealtime(1f);
+
 		// Resume playing
 		State = GameState.Playing;
+
+		OnPlayerRevival?.Invoke(true);
 	}
 
 	public void PlayBoom()
@@ -215,5 +247,12 @@ public class GameManager : MonoBehaviour, IGameStateListener
 	public void OnGameStateChanged(GameState fromState, GameState toState)
 	{
 		// Do all the state related handling here
+		if (fromState == toState)
+			return;
+
+		if (toState == GameState.MainMenu)
+		{
+			EnemyManager.Instance.ReInit();
+		}
 	}
 }

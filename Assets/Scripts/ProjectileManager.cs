@@ -82,6 +82,6 @@ public class ProjectileManager : IGameStateListener
 
 	public void OnGameStateChanged(GameState fromState, GameState toState)
 	{
-		throw new System.NotImplementedException();
+		//throw new System.NotImplementedException();
 	}
 }

@@ -20,7 +20,6 @@ public class EnemyManager : MonoBehaviour, IGameStateListener
 		if (_instance == null)
 		{
 			_instance = this;
-			Init();
 		}
 		else
 		{
@@ -60,6 +59,7 @@ public class EnemyManager : MonoBehaviour, IGameStateListener
 	private float MarchInterval = 1f; // #TODO : Set this from the Level Data
 
 	public System.Action<int, bool> MoveEvent = null;
+	public System.Action ClearEvent = null;
 	
 	private float _currentMarchInterval = 1f;
 	private float _updateTimer = 0f;
@@ -69,7 +69,7 @@ public class EnemyManager : MonoBehaviour, IGameStateListener
 
 	private bool _isInitialized = false;
 
-	private void Init()
+	public void Init()
 	{
 		if (_enemyPools.Count == 0)
 		{
@@ -89,6 +89,8 @@ public class EnemyManager : MonoBehaviour, IGameStateListener
 	{
 		_isInitialized = false;
 		_enemies.Clear();
+		_specialEnemy.gameObject.SetActive(false);
+		ClearEvent?.Invoke();
 		Init();
 	}
 
@@ -188,13 +190,20 @@ public class EnemyManager : MonoBehaviour, IGameStateListener
 		GameManager.Instance.AddScore(score);
 	}
 
+	public void ReturnToPool(Enemy enemy)
+	{
+		_enemyPools[enemy.enemyType].Release(enemy);
+		enemy.gameObject.SetActive(false);
+		_enemies.Remove(enemy);
+	}
+
 	public void EnemyKilled(Enemy enemy)
 	{
 		GameManager.Instance.AddScore(enemy.points);
 
-		_enemyPools[enemy.enemyType].Release(enemy);
-		enemy.gameObject.SetActive(false);
-		_enemies.Remove(enemy);
+		//_enemyPools[enemy.enemyType].Release(enemy);
+		//enemy.gameObject.SetActive(false);
+		//_enemies.Remove(enemy);
 
 		_currentMarchInterval = Mathf.Max(_currentMarchInterval - 0.02f, 0.2f);
 		if (_enemies.Count == 0)
@@ -205,7 +214,7 @@ public class EnemyManager : MonoBehaviour, IGameStateListener
 
 	public void OnGameStateChanged(GameState fromState, GameState toState)
 	{
-		throw new NotImplementedException();
+		//throw new NotImplementedException();
 	}
 
 	// Spawn special enemies

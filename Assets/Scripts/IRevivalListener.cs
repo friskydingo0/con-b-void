@@ -2,5 +2,5 @@
 
 public interface IRevivalListener
 {
-	public void OnPlayerRevival();
+	public void OnPlayerRevival(bool isDone);
 }

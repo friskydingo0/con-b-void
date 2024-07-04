@@ -8,7 +8,7 @@ public enum EnemyType
 	Hard
 }
 
-public class Enemy : MonoBehaviour, IRevivalListener
+public class Enemy : MonoBehaviour, IRevivalListener, IGameStateListener
 {
 	public EnemyType enemyType;
 	public int points = 0;
@@ -41,6 +41,8 @@ public class Enemy : MonoBehaviour, IRevivalListener
 	{
 		GameManager.Instance.OnPlayerRevival += OnPlayerRevival;
 		EnemyManager.Instance.MoveEvent += Move;
+		EnemyManager.Instance.ClearEvent += OnClearLevel;
+		GameManager.Instance.AddStateListener(OnGameStateChanged);
 		_shotTimer = 0f;
 		_isInitComplete = true;
 	}
@@ -150,7 +152,7 @@ public class Enemy : MonoBehaviour, IRevivalListener
 
 		CheckAndShoot();
 
-		if (Mathf.Approximately(transform.position.z, GameManager.Instance.Bounds.Near))
+		if (transform.position.z <= GameManager.Instance.Bounds.Near)
 		{
 			GameManager.Instance.EndGame(false);
 		}
@@ -169,24 +171,49 @@ public class Enemy : MonoBehaviour, IRevivalListener
 		}
 	}
 
-	public void ApplyDamage()
+	private void Recycle()
 	{
 		StopAllCoroutines();
 		GameManager.Instance.OnPlayerRevival -= OnPlayerRevival;
 		EnemyManager.Instance.MoveEvent -= Move;
-		EnemyManager.Instance.EnemyKilled(this);
-		
+		EnemyManager.Instance.ClearEvent -= OnClearLevel;
+		GameManager.Instance.RemoveStateListener(OnGameStateChanged);	// Should use the funnel method for all other subscribers too
+
 		_isInitComplete = false;
+
+		EnemyManager.Instance.ReturnToPool(this);
 	}
 
-	public void OnPlayerRevival()
+	public void ApplyDamage()
 	{
+		Recycle();
+		EnemyManager.Instance.EnemyKilled(this);
+	}
 
+	private void OnClearLevel()
+	{
+		Recycle();
+	}
+
+	public void OnPlayerRevival(bool isDone)
+	{
+		_isInitComplete = isDone;
 	}
 
 	private void OnMouseDown()
 	{
 		ApplyDamage();
+	}
+
+	public void OnGameStateChanged(GameState fromState, GameState toState)
+	{
+		if (fromState == toState)
+			return;
+
+		if (fromState == GameState.Playing && toState == GameState.Paused)
+			_isInitComplete = false ;
+		else if (fromState == GameState.Paused && toState == GameState.Playing)
+			_isInitComplete = true ;
 	}
 
 	// Move

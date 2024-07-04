@@ -1,7 +1,4 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Assertions;
 
 public class Projectile : MonoBehaviour, IRevivalListener
 {
@@ -35,8 +32,9 @@ public class Projectile : MonoBehaviour, IRevivalListener
 		ProjectileManager.Instance.ReturnProjectile(this);
 	}
 
-	public void OnPlayerRevival()
+	public void OnPlayerRevival(bool isDone)
 	{
-		Recycle();
+		if (!isDone)
+			Recycle();
 	}
 }

@@ -52,7 +52,29 @@ public class UIHandler : MonoBehaviour, IGameStateListener
 
 	public void ShowTitleScreen()
 	{
+		pausePanel.SetActive(false);
+		hudPanel.SetActive(false);
 		titlePanel.SetActive(true);
+		winPanel.SetActive(false);
+		losePanel.SetActive(false);
+		GameManager.Instance.BackToTitleScreen();
+	}
+
+	public void PauseGame()
+	{
+		GameManager.Instance.Pause();
+		pausePanel.SetActive(true);
+	}
+
+	public void ResumeGame()
+	{
+		GameManager.Instance.Resume();
+		pausePanel.SetActive(false);
+	}
+
+	public void EndGame()
+	{
+		GameManager.Instance.EndGame(false);
 	}
 
 	public void UpdateScore(int score, bool isHiScore = false)
