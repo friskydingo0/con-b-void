@@ -63,6 +63,9 @@ public class GameManager : MonoBehaviour, IGameStateListener
 	[SerializeField]
 	private Transform playerSpawn = null;
 
+	public int LivesLeft { get; private set; }
+	public const int MaxLives = 3;
+
 	public int Score { get; private set; }
 	public int HiScore { get; private set; }
 
@@ -100,8 +103,18 @@ public class GameManager : MonoBehaviour, IGameStateListener
 		}
 		playerController.Init();
 
+		LivesLeft = MaxLives;
+
 		LevelDatabase = Resources.Load<LevelData>("LevelData");
 		HiScore = PlayerPrefs.GetInt("HiScore", 0);
+	}
+
+	private void RegisterStateChangeListeners()
+	{
+		_OnGameStateChanged += _uiHandler.OnGameStateChanged;
+		_OnGameStateChanged += playerController.OnGameStateChanged;
+		_OnGameStateChanged += EnemyManager.Instance.OnGameStateChanged;
+		_OnGameStateChanged += ProjectileManager.Instance.OnGameStateChanged;
 	}
 
 	public void AddScore(int score)
@@ -134,9 +147,27 @@ public class GameManager : MonoBehaviour, IGameStateListener
 		EnemyManager.Instance.ReInit();
 	}
 
-	public void RevivePlayer()
+	private void Update()
 	{
-		StartCoroutine(RevivalSequence());
+#if UNITY_EDITOR
+		if (Input.GetKeyDown(KeyCode.K))
+			EndGame(false);
+#endif
+	}
+
+	public void OnPlayerHit()
+	{
+		LivesLeft--;
+
+		if (LivesLeft <= 0)
+		{
+			// Game over
+			EndGame(false);
+		}
+		else
+		{
+			StartCoroutine(RevivalSequence());
+		}
 	}
 
 	IEnumerator RevivalSequence()
@@ -153,7 +184,7 @@ public class GameManager : MonoBehaviour, IGameStateListener
 		playerController.ReviveAtPosition(playerSpawn.position);
 
 		// Update UI
-		//_uiHandler.UpdateLives();
+		_uiHandler.UpdatePlayerLives(LivesLeft);
 
 		// Resume playing
 		State = GameState.Playing;
@@ -169,6 +200,8 @@ public class GameManager : MonoBehaviour, IGameStateListener
 	{
 		PlayerPrefs.SetInt("HiScore", Score);
 		PlayerPrefs.Save();
+
+		State = didWin ? GameState.Victory : GameState.GameOver;
 	}
 
 	public void BackToTitleScreen()

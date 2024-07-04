@@ -4,8 +4,6 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour, IGameStateListener
 {
-	public int LivesLeft {  get; private set; }
-	public const int MaxLives = 3;
 	public static int MaxBullets {  get; private set; }
 	private const int DefaultBullets = 1;
 
@@ -16,9 +14,6 @@ public class PlayerController : MonoBehaviour, IGameStateListener
 	private Transform modelRoot = null;
 	[SerializeField]
 	private Vector3 tiltOffset = Vector3.zero;
-
-	[SerializeField]
-	private Projectile _bulletObject = null;
 
 	// Public parameters
 	public float _MoveSpeed = 1.0f;
@@ -38,7 +33,6 @@ public class PlayerController : MonoBehaviour, IGameStateListener
 	public void Init()
 	{
 		MaxBullets = DefaultBullets;
-		LivesLeft = MaxLives;
 		isInitialized = true;
 	}
 
@@ -87,18 +81,24 @@ public class PlayerController : MonoBehaviour, IGameStateListener
 		if (other.CompareTag("EnemyBullet"))
 		{
 			// Play particle effect
+			StartCoroutine(BlinkOnHit(2));
 			
 			isInitialized = false;
-			LivesLeft--;
+			GameManager.Instance.OnPlayerHit();
+		}
+	}
 
-			if (LivesLeft <= 0)
-			{
-				// Game over
-			}
-			else
-			{
-				GameManager.Instance.RevivePlayer();
-			}
+	IEnumerator BlinkOnHit(int timesToBlink)
+	{
+		int count = 0;
+		while (count < timesToBlink)
+		{
+			modelRoot.gameObject.SetActive(false);
+			yield return new WaitForSeconds(0.5f);
+
+			modelRoot.gameObject.SetActive(true);
+			yield return new WaitForSeconds(0.5f);
+			count++;
 		}
 	}
 

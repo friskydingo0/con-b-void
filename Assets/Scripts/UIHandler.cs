@@ -22,6 +22,9 @@ public class UIHandler : MonoBehaviour, IGameStateListener
 	private TMP_Text scoreText;
 	[SerializeField]
 	private TMP_Text hiScoreText;
+
+	[SerializeField]
+	private RectTransform playerLivesContainer;
 	#endregion
 
 	public void StartGame()
@@ -36,7 +39,15 @@ public class UIHandler : MonoBehaviour, IGameStateListener
 
 		titlePanel.SetActive(false);
 		hudPanel.SetActive(true);
+
 		GameManager.Instance.StartGame();
+
+		Transform lifeIcon = playerLivesContainer.GetChild(0);
+		for (int i = 0; i < GameManager.Instance.LivesLeft; i++)
+		{
+			var newIcon = Instantiate(lifeIcon, playerLivesContainer);
+			newIcon.gameObject.SetActive(true);
+		}
 	}
 
 	public void ShowTitleScreen()
@@ -48,6 +59,11 @@ public class UIHandler : MonoBehaviour, IGameStateListener
 	{
 		scoreText.text = string.Format("Score: {0}", score);
 		hiScoreText.text = string.Format("Hi-score: {0}", score);
+	}
+
+	public void UpdatePlayerLives(int playerLives)
+	{
+		Destroy(playerLivesContainer.GetChild(playerLivesContainer.childCount - 1).gameObject);
 	}
 
 	public void OnGameStateChanged(GameState fromState, GameState toState)
