@@ -3082,8 +3082,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 340, y: 130}
+  m_AnchoredPosition: {x: -0.000030517578, y: 21.106201}
+  m_SizeDelta: {x: 514.88, y: 87.7876}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &932425598
 MonoBehaviour:
@@ -3105,21 +3105,19 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Conquerors
+  m_text: 'Conquerors from
 
-    from the
-
-    Black Void'
+    the Black Void'
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 035bb5e63558a1f4684f5000547da0b4, type: 2}
+  m_sharedMaterial: {fileID: 688843502692125247, guid: 035bb5e63558a1f4684f5000547da0b4, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4281532160
-  m_fontColor: {r: 0, g: 1, b: 0.19517922, a: 1}
+    rgba: 4294638080
+  m_fontColor: {r: 0, g: 0.9811321, b: 0.9811321, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -4471,8 +4469,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 340, y: 130}
+  m_AnchoredPosition: {x: -0.000030517578, y: 21.106003}
+  m_SizeDelta: {x: 514.88, y: 87.788}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1664483150
 MonoBehaviour:
@@ -5359,7 +5357,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 30, y: -30}
-  m_SizeDelta: {x: 340, y: 130}
+  m_SizeDelta: {x: 514.8801, y: 130}
   m_Pivot: {x: 0, y: 1}
 --- !u!1 &2021449995
 GameObject:
